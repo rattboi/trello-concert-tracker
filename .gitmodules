@@ -1,0 +1,3 @@
+[submodule "trello/trollop"]
+	path = trello/trollop
+	url = git@github.com:demophoon/trollop.git
