@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function
+
 from urlparse import urljoin
 
 import arrow
@@ -63,7 +65,7 @@ def main(trello, secrets):
     for site in sites:
         url = site['url']
         venue = site['venue']
-        print("Scanning {}...".format(venue))
+        print("Scanning {}... ".format(venue), end='')
         content = requests.get(url)
         doc = bs(content.text, 'html.parser')
         events = doc.select('.vevent')
@@ -79,6 +81,7 @@ def main(trello, secrets):
             doc = bs(content.text, 'html.parser')
             parsed_event = parse_event(doc, venue)
             final_events.append(parsed_event)
+        print("Found {} items.".format(len(final_events)))
         sync_to_trello(trello, secrets, final_events)
 
 
