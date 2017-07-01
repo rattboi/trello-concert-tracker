@@ -36,7 +36,9 @@ def parse_event(event, default_venue=None):
                     'at {}'.format(venue)
                   )[0].strip()
                   for x in headliners]
-    headliners = [x.split('/').strip() for x in headliners]
+    headliners = [x.split('/') for x in headliners]
+    headliners = [item.strip() for sublist in headliners for item in sublist]
+
 
     openers = [x.text for x in event.find_all(class_='supports')]
 
