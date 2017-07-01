@@ -127,8 +127,12 @@ def main(trello, secrets):
 
     sites = [
         {
+            'url': 'http://roselandpdx.com/events/?tribe_bar_rhp_venue=168',
+            'venue': 'Roseland Theater',
+        },
+        {
             'url': 'http://hawthornetheatre.com/events/',
-            'venue': 'Hawthorne Theater',
+            'venue': 'Hawthorne Theatre',
         },
     ]
 
