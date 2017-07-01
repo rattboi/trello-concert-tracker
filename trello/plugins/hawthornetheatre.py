@@ -98,15 +98,15 @@ def parse_event(event, default_venue=None):
     if has_openers:
         openers = parse_openers(has_openers)
 
-    print("Concert:")
-    print("  Headliners:")
-    for h in headliners:
-        print(u"    {}".format(h))
-    print("  Openers:")
-    for o in openers:
-        print(u"    {}".format(o))
-    print("  Date: {}".format(date))
-    print()
+    # print("Concert:")
+    # print("  Headliners:")
+    # for h in headliners:
+        # print(u"    {}".format(h))
+    # print("  Openers:")
+    # for o in openers:
+        # print(u"    {}".format(o))
+    # print("  Date: {}".format(date))
+    # print()
 
     fobj = {
         'headliners': headliners,
