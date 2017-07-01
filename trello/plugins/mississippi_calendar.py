@@ -9,7 +9,6 @@ import requests
 from bs4 import BeautifulSoup as bs
 from trello.plugins.sync_to_trello import sync_to_trello
 
-
 def parse_event(event, default_venue=None):
     over_21 = event.find(class_='over-21') is not None
 
@@ -32,11 +31,18 @@ def parse_event(event, default_venue=None):
     if has_ticket_link:
         ticket_link = has_ticket_link.find('a').get('href')
 
+    headliners = event.find_all(class_='headliners')
+    headliners = [x.text.split('SOLD OUT: ')[-1].split(
+                    'at {}'.format(venue)
+                  )[0].strip()
+                  for x in headliners]
+    headliners = [x.split('/').strip() for x in headliners]
+
+    openers = [x.text for x in event.find_all(class_='supports')]
+
     fobj = {
-        'headliners': [x.text.split('SOLD OUT: ')[-1].split('at {}'.format(
-            venue
-        ))[0].strip() for x in event.find_all(class_='headliners')],
-        'openers': [x.text for x in event.find_all(class_='supports')],
+        'headliners': headliners,
+        'openers': openers,
         'description': description,
         'age_restriction': age_restriction,
         'venue': venue,
