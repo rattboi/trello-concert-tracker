@@ -113,13 +113,16 @@ def set_due_date(card, date):
 
 def sync_to_trello(trello, secrets, song_objects, force_add=None):
 
+    pw_hash = secrets['lastfm'].get('password_hash')
+    if pw_hash is None:
+        pw_hash = pylast.md5(secrets['lastfm']['password'])
+
     lfm = pylast.LastFMNetwork(
         api_key=secrets['lastfm']['api_key'],
         api_secret=secrets['lastfm']['secret'],
         username=secrets['lastfm']['username'],
-        password_hash=pylast.md5(secrets['lastfm']['password']),
+        password_hash=pw_hash,
     )
-
 
     concerts_board = [x for x in trello.me.boards if x.name == 'Concerts'][0]
     landing_list = [x for x in concerts_board.lists if x.name == 'Coming to Town'][0]
