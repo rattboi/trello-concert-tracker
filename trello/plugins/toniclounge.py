@@ -90,6 +90,10 @@ def main(trello, secrets):
             'url': 'http://www.tonicloungeportland.com/',
             'venue': 'Tonic Lounge',
         },
+        {
+            'url': 'http://highwatermarklounge.com/',
+            'venue': 'High Water Mark Lounge',
+        },
     ]
 
     for site in sites:
