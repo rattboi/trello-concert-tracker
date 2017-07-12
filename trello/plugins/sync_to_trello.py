@@ -71,7 +71,7 @@ def get_play_count(lfm, artist):
             'updated': arrow.utcnow().isoformat(),
             'similar_artists': None,
         }
-        time.sleep(3)
+        time.sleep(0.3)
 
     f = open('lastfm_cache.json', 'w+')
     f.write(json.dumps(contents))
@@ -97,7 +97,7 @@ def get_similar_artists(lfm, artist):
                 'match': art.match,
             }
         contents['artists'][artist]['similar_artists'] = similar_artists
-        time.sleep(3)
+        time.sleep(0.3)
     else:
         similar_artists = contents['artists'][artist]['similar_artists']
 
@@ -282,7 +282,7 @@ def sync_to_trello(trello, secrets, song_objects, force_add=None):
         contents['events'][show['uuid']] = show
         contents['events'][show['uuid']]['date'] = show['date'].isoformat()
         if add_card:
-            time.sleep(5)
+            time.sleep(0.3)
 
         save_synced_items(contents)
 
