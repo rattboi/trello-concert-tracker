@@ -8,7 +8,7 @@ import imp
 
 from trollop.lib import TrelloConnection
 
-import secret
+import trello.secret as secret
 
 import warnings
 warnings.filterwarnings("ignore")

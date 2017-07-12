@@ -275,7 +275,6 @@ def sync_to_trello(trello, secrets, song_objects, force_add=None):
                 card.set_label(label)
 
             for comment in comments:
-                comment.decode('utf-8', 'ignore')
                 card.add_comment(comment)
 
         show.pop('_internal')
@@ -322,15 +321,15 @@ def add(trello, secrets):
         readline.set_completer_delims('')
         final_value = None
         if default:
-            value = raw_input("{} (Default: {}): ".format(item, default))
+            value = input("{} (Default: {}): ".format(item, default))
         else:
-            value = raw_input("{}: ".format(item))
+            value = input("{}: ".format(item))
         if value:
             if tp in [list]:
                 final_value = []
                 while value:
                     final_value.append(value)
-                    value = raw_input("{} (more): ".format(item))
+                    value = input("{} (more): ".format(item))
             elif tp is datetime.datetime:
                 for splitter in ['/', '-', ' ']:
                     if len(value.split(splitter)) == 3:
@@ -364,13 +363,13 @@ def add(trello, secrets):
         }
         print('----------------------------------------')
         pprint.pprint(event)
-        if raw_input("Confirm event [Y/n]").lower() == 'n':
+        if input("Confirm event [Y/n]").lower() == 'n':
             print("Press enter to keep the default value. Otherwise provide your changes.")
             continue
         events.append(event)
         event = {}
         print('')
-        continue_interview = raw_input("Add another event? [Y/n]").lower() != 'n'
+        continue_interview = input("Add another event? [Y/n]").lower() != 'n'
 
     sync_to_trello(trello, secrets, events, force_add=True)
 
