@@ -21,6 +21,7 @@ def cli():
         secret.key['trello']['api_key'],
         secret.key['trello']['token'])
 
+    results = []
     plugins = [x
                for x in glob.glob('trello/plugins/*.py')
                if '__init__' not in x]
@@ -31,7 +32,10 @@ def cli():
         if hasattr(plug, action):
             method = getattr(plug, action)
             if callable(method):
-                method(trello, secret.key)
+                result = method(trello, secret.key)
+                results.extend(result)
+    if not all(results):
+        sys.exit(1)
 
 if __name__ == '__main__':
     cli()

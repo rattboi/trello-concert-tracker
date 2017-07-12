@@ -9,6 +9,18 @@ import requests
 from bs4 import BeautifulSoup as bs
 from trello.plugins.sync_to_trello import sync_to_trello
 
+sites = [
+    {
+        'url': 'http://startheaterportland.com/',
+        'venue': 'Star Theater',
+    },
+    {
+        'url': 'http://danteslive.com/',
+        'venue': "Dante's",
+    },
+]
+
+
 #import sys
 #from PyQt4.QtGui import QApplication
 #from PyQt4.QtCore import QUrl
@@ -64,55 +76,50 @@ def parse_event(event, default_venue=None):
     return fobj
 
 
-def main(trello, secrets):
-    sites = [
-        {
-            'url': 'http://startheaterportland.com/',
-            'venue': 'Star Theater',
-        },
-        {
-            'url': 'http://danteslive.com/',
-            'venue': "Dante's",
-        },
-    ]
+def main(site):
+    url = site['url']
+    venue = site['venue']
+    result = Render(url)
 
-    for site in sites:
-        url = site['url']
-        venue = site['venue']
-        print("Scanning {}... ".format(venue), end='')
-        result = Render(url)
+    import pdb; pdb.set_trace()
+    return
 
-        import pdb; pdb.set_trace()
-        return
+    content = requests.get(url)
+    doc = bs(content.text, 'html.parser')
+    days = doc.select('.tw-section')
 
-        content = requests.get(url)
-        doc = bs(content.text, 'html.parser')
-        days = doc.select('.tw-section')
+    import pdb; pdb.set_trace()
 
-        import pdb; pdb.set_trace()
-
-        final_events = []
-        for day in days:
-            time_str = day.find('span').get('title')
-            date = arrow.get(time_str)
-            events = day.find_all('div', class_='one-event')
-            for event in events:
-                parsed_event = parse_event(event, venue)
-                start_time = event.find(class_='start-time')
-                if start_time:
-                    start_time = start_time.text.lower()
-                    ampm = start_time.split(' ')[-1]
-                    parts = start_time.split(' ')[0].split(':')
-                    hours = int(parts[0])
-                    mins = int(parts[1])
-                    if ampm.startswith('p'):
-                        hours += 12
-                    date = date.replace(hour=hours % 24, minute=mins % 60)
-                parsed_event['date'] = date
-                final_events.append(parsed_event)
-        print("Found {} items.".format(len(final_events)))
-        sync_to_trello(trello, secrets, final_events)
+    final_events = []
+    for day in days:
+        time_str = day.find('span').get('title')
+        date = arrow.get(time_str)
+        events = day.find_all('div', class_='one-event')
+        for event in events:
+            parsed_event = parse_event(event, venue)
+            start_time = event.find(class_='start-time')
+            if start_time:
+                start_time = start_time.text.lower()
+                ampm = start_time.split(' ')[-1]
+                parts = start_time.split(' ')[0].split(':')
+                hours = int(parts[0])
+                mins = int(parts[1])
+                if ampm.startswith('p'):
+                    hours += 12
+                date = date.replace(hour=hours % 24, minute=mins % 60)
+            parsed_event['date'] = date
+            final_events.append(parsed_event)
+    return final_events
 
 
-def test(trello, secrets):
-    main(trello, secrets)
+def tester(site):
+    events = main(site)
+    if len(events) == 0:
+        print("ERROR: No results for {}".format(site['venue']))
+        return False
+    else:
+        return True
+
+
+def test_notworking(trello, secrets):
+    return [tester(site) for site in sites]

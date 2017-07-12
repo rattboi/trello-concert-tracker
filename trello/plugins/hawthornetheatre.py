@@ -8,6 +8,19 @@ import requests
 from bs4 import BeautifulSoup as bs
 from trello.plugins.sync_to_trello import sync_to_trello
 
+ua = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
+
+sites = [
+    {
+        'url': 'http://roselandpdx.com/events/?tribe_bar_rhp_venue=168',
+        'venue': 'Roseland Theater',
+    },
+    {
+        'url': 'http://hawthornetheatre.com/events/',
+        'venue': 'Hawthorne Theatre',
+    },
+]
+
 
 def parse_headliners(artists):
     # separate each artist if multiple headliners
@@ -122,42 +135,46 @@ def parse_event(event, default_venue=None):
     return fobj
 
 
-def main(trello, secrets):
-    ua = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
+def main(site):
+    url = site['url']
+    venue = site['venue']
+    content = requests.get(url, headers={"User-Agent": ua})
+    doc = bs(content.text, 'html.parser')
+    events = doc.select('.rhino-event-header')
+    event_urls = map(
+        lambda x: (
+            x,
+            x.select('.url')[0].get('href')
+        ), events)
 
-    sites = [
-        {
-            'url': 'http://roselandpdx.com/events/?tribe_bar_rhp_venue=168',
-            'venue': 'Roseland Theater',
-        },
-        {
-            'url': 'http://hawthornetheatre.com/events/',
-            'venue': 'Hawthorne Theatre',
-        },
-    ]
-
-    for site in sites:
-        url = site['url']
-        venue = site['venue']
-        print("Scanning {}... ".format(venue), end='')
+    final_events = []
+    for event, url in event_urls:
         content = requests.get(url, headers={"User-Agent": ua})
         doc = bs(content.text, 'html.parser')
-        events = doc.select('.rhino-event-header')
-        event_urls = map(
-            lambda x: (
-                x,
-                x.select('.url')[0].get('href')
-            ), events)
-
-        final_events = []
-        for event, url in event_urls:
-            content = requests.get(url, headers={"User-Agent": ua})
-            doc = bs(content.text, 'html.parser')
-            parsed_event = parse_event(doc, venue)
-            final_events.append(parsed_event)
-        print("Found {} items.".format(len(final_events)))
-        sync_to_trello(trello, secrets, final_events)
+        parsed_event = parse_event(doc, venue)
+        final_events.append(parsed_event)
+    return final_events
 
 
 def run(trello, secrets):
-    main(trello, secrets)
+    final_events = []
+    for site in sites:
+        print("Scanning {}... ".format(site['venue']), end='')
+        events = main(site)
+        print("Found {} items.".format(len(events)))
+        final_events.extend(events)
+    sync_to_trello(trello, secrets, final_events)
+    return [True]
+
+
+def tester(site):
+    events = main(site)
+    if len(events) == 0:
+        print("ERROR: No results for {}".format(site['venue']))
+        return False
+    else:
+        return True
+
+
+def test(trello, secrets):
+    return [tester(site) for site in sites]

@@ -3,4 +3,4 @@
 
 
 def run(trello, secrets):
-    pass
+    return [True]

@@ -9,6 +9,13 @@ import arrow
 import requests
 from trello.plugins.sync_to_trello import sync_to_trello
 
+sites = [
+    {
+        'url': 'https://www.eventbrite.com/venue/api/feeds/organization/92.json',
+        'venue': "Analog Theater",
+    },
+]
+
 
 def clean_artists(artists):
     final_artists = []
@@ -64,28 +71,38 @@ def parse_event(event):
     return fobj
 
 
-def main(trello, secrets):
-    sites = [
-        {
-            'url': 'https://www.eventbrite.com/venue/api/feeds/organization/92.json',
-            'venue': "Analog Theater",
-        },
-    ]
+def main(site):
+    url = site['url']
+    venue = site['venue']
+    content = requests.get(url)
+    events = json.loads(content.text)
 
-    for site in sites:
-        url = site['url']
-        venue = site['venue']
-        print("Scanning {}... ".format(venue), end='')
-        content = requests.get(url)
-        events = json.loads(content.text)
-
-        final_events = []
-        for event in events:
-            parsed_event = parse_event(event)
-            final_events.append(parsed_event)
-        print("Found {} items.".format(len(final_events)))
-        sync_to_trello(trello, secrets, final_events)
+    final_events = []
+    for event in events:
+        parsed_event = parse_event(event)
+        final_events.append(parsed_event)
+    return final_events
 
 
 def run(trello, secrets):
-    main(trello, secrets)
+    final_events = []
+    for site in sites:
+        print("Scanning {}... ".format(site['venue']), end='')
+        events = main(site)
+        print("Found {} items.".format(len(events)))
+        final_events.extend(events)
+    sync_to_trello(trello, secrets, final_events)
+    return [True]
+
+
+def tester(site):
+    events = main(site)
+    if len(events) == 0:
+        print("ERROR: No results for {}".format(site['venue']))
+        return False
+    else:
+        return True
+
+
+def test(trello, secrets):
+    return [tester(site) for site in sites]

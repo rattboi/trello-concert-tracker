@@ -10,6 +10,17 @@ import arrow
 import requests
 from trello.plugins.sync_to_trello import sync_to_trello
 
+sites = [
+    {
+        'url': 'http://www.tonicloungeportland.com/',
+        'venue': 'Tonic Lounge',
+    },
+    {
+        'url': 'http://highwatermarklounge.com/',
+        'venue': 'High Water Mark Lounge',
+    },
+]
+
 
 def parse_event(event, default_venue=None, artists=None, date=None):
 
@@ -84,46 +95,52 @@ def get_artists(event):
     return artists
 
 
-def main(trello, secrets):
-    sites = [
-        {
-            'url': 'http://www.tonicloungeportland.com/',
-            'venue': 'Tonic Lounge',
-        },
-        {
-            'url': 'http://highwatermarklounge.com/',
-            'venue': 'High Water Mark Lounge',
-        },
-    ]
+def main(site):
+    url = site['url']
+    venue = site['venue']
+    content = requests.get(url)
+    doc = bs(content.text, 'html.parser')
+    events = doc.select('#grid')[0].select('a')
+    # filter out any events that have no date (not real events)
+    events = [e for e in events
+              if len(e.find_all(class_='event-date')) > 0]
 
-    for site in sites:
-        url = site['url']
-        venue = site['venue']
-        print("Scanning {}... ".format(venue), end='')
-        content = requests.get(url)
+    final_events = []
+    for event in events:
+        # Get info from summary view
+        date_elem = event.find(class_='event-date')
+        date = get_date(date_elem)
+        artists = get_artists(date_elem)
+
+        # Get the rest from the specific event
+        content = requests.get(event['href'])
         doc = bs(content.text, 'html.parser')
-        events = doc.select('#grid')[0].select('a')
-        # filter out any events that have no date (not real events)
-        events = [e for e in events
-                  if len(e.find_all(class_='event-date')) > 0]
+        parsed_event = parse_event(doc, venue, artists, date)
 
-        final_events = []
-        for event in events:
-            # Get info from summary view
-            date_elem = event.find(class_='event-date')
-            date = get_date(date_elem)
-            artists = get_artists(date_elem)
-
-            # Get the rest from the specific event
-            content = requests.get(event['href'])
-            doc = bs(content.text, 'html.parser')
-            parsed_event = parse_event(doc, venue, artists, date)
-
-            # Fill in the fields we got from summary
-            final_events.append(parsed_event)
-        print("Found {} items.".format(len(final_events)))
-        sync_to_trello(trello, secrets, final_events)
+        # Fill in the fields we got from summary
+        final_events.append(parsed_event)
+    return final_events
 
 
 def run(trello, secrets):
-    main(trello, secrets)
+    final_events = []
+    for site in sites:
+        print("Scanning {}... ".format(site['venue']), end='')
+        events = main(site)
+        print("Found {} items.".format(len(events)))
+        final_events.extend(events)
+    sync_to_trello(trello, secrets, final_events)
+    return [True]
+
+
+def tester(site):
+    events = main(site)
+    if len(events) == 0:
+        print("ERROR: No results for {}".format(site['venue']))
+        return False
+    else:
+        return True
+
+
+def test(trello, secrets):
+    return [tester(site) for site in sites]

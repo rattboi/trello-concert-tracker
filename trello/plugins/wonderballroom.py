@@ -10,6 +10,13 @@ import requests
 from bs4 import BeautifulSoup as bs
 from trello.plugins.sync_to_trello import sync_to_trello
 
+sites = [
+    {
+        'url': 'http://www.wonderballroom.com/all-shows/',
+        'venue': 'Wonder Ballroom',
+    },
+]
+
 
 def parse_event(event, default_venue=None):
     over_21 = event.find(class_='over-21') is not None
@@ -54,36 +61,46 @@ def parse_event(event, default_venue=None):
     return fobj
 
 
-def main(trello, secrets):
-    sites = [
-        {
-            'url': 'http://www.wonderballroom.com/all-shows/',
-            'venue': 'Wonder Ballroom',
-        },
-    ]
+def main(site):
+    url = site['url']
+    venue = site['venue']
+    content = requests.get(url)
+    doc = bs(content.text, 'html.parser')
+    events = doc.select('.vevent')
+    event_urls = map(
+        lambda x: (
+            x,
+            urljoin(site['url'], x.select('.url')[0].get('href'))
+        ), events)
 
-    for site in sites:
-        url = site['url']
-        venue = site['venue']
-        print("Scanning {}... ".format(venue), end='')
+    final_events = []
+    for event, url in event_urls:
         content = requests.get(url)
         doc = bs(content.text, 'html.parser')
-        events = doc.select('.vevent')
-        event_urls = map(
-            lambda x: (
-                x,
-                urljoin(site['url'], x.select('.url')[0].get('href'))
-            ), events)
-
-        final_events = []
-        for event, url in event_urls:
-            content = requests.get(url)
-            doc = bs(content.text, 'html.parser')
-            parsed_event = parse_event(doc, venue)
-            final_events.append(parsed_event)
-        print("Found {} items.".format(len(final_events)))
-        sync_to_trello(trello, secrets, final_events)
+        parsed_event = parse_event(doc, venue)
+        final_events.append(parsed_event)
+    return final_events
 
 
 def run(trello, secrets):
-    main(trello, secrets)
+    final_events = []
+    for site in sites:
+        print("Scanning {}... ".format(site['venue']), end='')
+        events = main(site)
+        print("Found {} items.".format(len(events)))
+        final_events.extend(events)
+    sync_to_trello(trello, secrets, final_events)
+    return [True]
+
+
+def tester(site):
+    events = main(site)
+    if len(events) == 0:
+        print("ERROR: No results for {}".format(site['venue']))
+        return False
+    else:
+        return True
+
+
+def test(trello, secrets):
+    return [tester(site) for site in sites]
