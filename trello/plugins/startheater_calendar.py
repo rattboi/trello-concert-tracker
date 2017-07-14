@@ -70,10 +70,6 @@ def main(trello, secrets):
             'url': 'http://startheaterportland.com/',
             'venue': 'Star Theater',
         },
-        {
-            'url': 'http://danteslive.com/',
-            'venue': "Dante's",
-        },
     ]
 
     for site in sites:
