@@ -3,7 +3,7 @@
 
 from __future__ import print_function
 
-from urlparse import urljoin
+from urllib.parse import urljoin
 
 import arrow
 import requests
