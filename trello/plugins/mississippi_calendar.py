@@ -74,10 +74,6 @@ def main(trello, secrets):
             'venue': 'Aladdin Theater',
         },
         {
-            'url': 'http://danteslive.com/calendar/',
-            'venue': "Dante's",
-        },
-        {
             'url': 'http://www.holocene.org/calendar',
             'venue': 'Holocene',
         },
