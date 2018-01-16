@@ -73,6 +73,9 @@ def parse_event(event, venue):
     doc = bs(content.text, 'html.parser')
     event_content = doc.find(class_='event')
 
+    if event_content is None:
+        return None
+
     headliners = parse_headliners(event_content)
 
     openers = parse_openers(event_content)
@@ -149,12 +152,8 @@ def main(trello, secrets):
         content = requests.get(url, headers=headers)
         events = content.json()
 
-        final_events = []
-        for event in events:
-            # dive into each event, as the info is much more regular in the
-            # event page vs the summary page
-            parsed_event = parse_event(event, venue)
-            final_events.append(parsed_event)
+        final_events = [parse_event(event, venue) for event in events 
+                        if parse_event(event, venue) is not None]
         print("Found {} items.".format(len(final_events)))
         sync_to_trello(trello, secrets, final_events)
 
