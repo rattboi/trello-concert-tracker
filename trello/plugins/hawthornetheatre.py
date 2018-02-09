@@ -10,8 +10,21 @@ from trello.plugins.sync_to_trello import sync_to_trello
 
 
 def parse_headliners(artists):
+    artists = artists[0].text
+
     # separate each artist if multiple headliners
-    artists = [x.strip() for x in artists[0].text.split('/')]
+    artists = "".join(artists.split('/', 1))
+
+    # Separate on commas as well
+    artists = "".join(artists.split(u'with ', 1))
+    artists = "".join(artists.split(u'With ', 1))
+
+    # Remove last artist's 'and'
+    artists = ','.join(artists.rsplit('and ', 1))
+
+    # Split on commas
+    artists = [x.strip() for x in artists.split(',') if x.strip() != '']
+
 
     # Remove tour postfix if it exists
     artists = [x.split(u'–')[0] for x in artists]
@@ -33,7 +46,7 @@ def parse_openers(artists):
     return artists
 
 
-def parse_event(event, default_venue=None):
+def parse_event(event, default_venue=None, debug=False):
     content = event.find(class_='tribe-events-single')
 
     show_notes = content.find(class_='rhino-event-notes')
@@ -98,15 +111,16 @@ def parse_event(event, default_venue=None):
     if has_openers:
         openers = parse_openers(has_openers)
 
-    # print("Concert:")
-    # print("  Headliners:")
-    # for h in headliners:
-        # print(u"    {}".format(h))
-    # print("  Openers:")
-    # for o in openers:
-        # print(u"    {}".format(o))
-    # print("  Date: {}".format(date))
-    # print()
+    if debug:
+        print("Concert:")
+        print("  Headliners:")
+        for h in headliners:
+            print(u"    {}".format(h))
+        print("  Openers:")
+        for o in openers:
+            print(u"    {}".format(o))
+        print("  Date: {}".format(date))
+        print()
 
     fobj = {
         'headliners': headliners,
@@ -122,7 +136,7 @@ def parse_event(event, default_venue=None):
     return fobj
 
 
-def main(trello, secrets):
+def main(trello, secrets, debug):
     ua = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
 
     sites = [
@@ -153,11 +167,13 @@ def main(trello, secrets):
         for event, url in event_urls:
             content = requests.get(url, headers={"User-Agent": ua})
             doc = bs(content.text, 'html.parser')
-            parsed_event = parse_event(doc, venue)
+            parsed_event = parse_event(doc, venue, debug)
             final_events.append(parsed_event)
         print("Found {} items.".format(len(final_events)))
         sync_to_trello(trello, secrets, final_events)
 
+def hawthorne(trello, secrets):
+    main(trello, secrets, True)
 
 def run(trello, secrets):
-    main(trello, secrets)
+    main(trello, secrets, False)

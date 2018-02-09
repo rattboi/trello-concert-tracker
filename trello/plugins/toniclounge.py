@@ -42,7 +42,11 @@ def parse_event(event, default_venue=None, artists=None, date=None):
         start_time = arrow.get(has_start_time.group(0), 'hA')
         date = date.replace(hour=start_time.hour)
 
-    (headliners, openers) = [artists[0]], artists[1:]
+    if artists:
+        (headliners, openers) = [artists[0]], artists[1:]
+    else:
+        headliners = []
+        openers = []
 
     fobj = {
         'headliners': headliners,
@@ -79,8 +83,8 @@ def get_artists(event):
     # Remove any tags, keep the strings
     artists = [x.strip() for x in content.contents
                if not isinstance(x, bs4.element.Tag)]
-    # Remove any "artist" over 30 characters. Probably not an artist at all
-    artists = [x for x in artists if len(x) < 30]
+    # Remove any "artist" over 40 characters. Probably not an artist at all
+    artists = [x for x in artists if len(x) < 40]
     return artists
 
 
