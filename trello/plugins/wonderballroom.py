@@ -11,7 +11,31 @@ from bs4 import BeautifulSoup as bs
 from trello.plugins.sync_to_trello import sync_to_trello
 
 
-def parse_event(event, default_venue=None):
+def parse_headliners(headliners, venue):
+    parsed_headliners = []
+    for headliner in headliners:
+        hl = headliner.text.split(
+            'SOLD OUT: '
+        )[-1].split(
+            'at {}'.format(venue)
+        )[0].split(
+            '-'
+        )[0].split('&')
+        parsed_headliners.extend(hl)
+
+    headliners = [x.strip() for x in parsed_headliners]
+    return headliners
+
+
+def parse_openers(openers):
+    parsed_openers = []
+    for opener in openers:
+        o = opener.text.split(',')
+        parsed_openers.extend(o)
+    return [x.strip() for x in parsed_openers]
+
+
+def parse_event(event, default_venue=None, debug=False):
     over_21 = event.find(class_='over-21') is not None
 
     age_restriction = None
@@ -38,11 +62,24 @@ def parse_event(event, default_venue=None):
     if has_start_time:
         start_time = arrow.get(has_start_time[0].get('title'))
 
+    headliners = parse_headliners(event.find_all(class_='headliners'), venue)
+
+    openers = parse_openers(event.find_all(class_='supports'))
+
+    if debug:
+        print("Concert:")
+        print("  Headliners:")
+        for h in headliners:
+            print(u"    {}".format(h))
+        print("  Openers:")
+        for o in openers:
+            print(u"    {}".format(o))
+        print("  Date: {}".format(start_time))
+        print()
+
     fobj = {
-        'headliners': [x.text.split('SOLD OUT: ')[-1].split('at {}'.format(
-            venue
-        ))[0].strip() for x in event.find_all(class_='headliners')],
-        'openers': [x.text for x in event.find_all(class_='supports')],
+        'headliners': headliners,
+        'openers': openers,
         'description': description,
         'age_restriction': age_restriction,
         'venue': venue,
@@ -54,7 +91,7 @@ def parse_event(event, default_venue=None):
     return fobj
 
 
-def main(trello, secrets):
+def main(trello, secrets, debug):
     sites = [
         {
             'url': 'http://www.wonderballroom.com/all-shows/',
@@ -79,11 +116,13 @@ def main(trello, secrets):
         for event, url in event_urls:
             content = requests.get(url)
             doc = bs(content.text, 'html.parser')
-            parsed_event = parse_event(doc, venue)
+            parsed_event = parse_event(doc, venue, debug)
             final_events.append(parsed_event)
         print("Found {} items.".format(len(final_events)))
         sync_to_trello(trello, secrets, final_events)
 
+def wonderballroom(trello, secrets):
+    main(trello, secrets, True)
 
 def run(trello, secrets):
-    main(trello, secrets)
+    main(trello, secrets, False)
