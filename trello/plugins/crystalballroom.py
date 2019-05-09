@@ -108,7 +108,10 @@ def parse_event(event, venue):
 
             ampm = show_time.split(' ')[-1]
             parts = show_time.split(' ')[0].split(':')
-            hours = int(parts[0])
+            try:
+                hours = int(parts[0])
+            except:
+                hours = int(''.join(filter(lambda x: x.isdigit(), parts[0])))
             if len(parts) > 1:
                 mins = int(parts[1])
             else:

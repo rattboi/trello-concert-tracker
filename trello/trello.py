@@ -6,7 +6,7 @@ import sys
 import os
 import imp
 
-from trollop.lib import TrelloConnection
+from .trollop.trollop.lib import TrelloConnection
 
 import trello.secret as secret
 
