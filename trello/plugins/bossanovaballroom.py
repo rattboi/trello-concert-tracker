@@ -59,7 +59,7 @@ def get_rest(url):
 
     date = arrow.get(jdata['startDate']).to('local')
     description = jdata['description']
-    venue = jdata['location']['name']
+    venue = jdata.get('location', {'name': 'Bossanova'}).get('name')
     age_restriction = get_restriction(description)
 
     return (date, description, ticket, venue, age_restriction)

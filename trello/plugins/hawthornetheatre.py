@@ -60,7 +60,7 @@ def parse_event(event, default_venue=None, debug=False):
         venue = default_venue
         has_venue = event.find(class_='rhino-event-venue')
         if has_venue:
-            venue = has_venue.text
+            venue = has_venue.text.strip()
     else:
         age_restriction = None
         venue = None
@@ -68,7 +68,7 @@ def parse_event(event, default_venue=None, debug=False):
     description = None
     has_description = event.find(class_='tribe-events-single-event-description')
     if has_description:
-        description = has_description.text
+        description = has_description.text.strip()
 
     ticket_link = None
     has_ticket_link = event.find(class_='on-sale')

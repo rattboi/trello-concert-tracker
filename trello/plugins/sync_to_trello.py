@@ -264,18 +264,18 @@ def sync_to_trello(trello, secrets, song_objects, force_add=None):
                 show['_internal']['title'],
                 show['date'],
             ))
-            card = landing_list.add_card(
-                show['_internal']['title'],
-                show['_internal']['description']
-            )
-            set_due_date(card, show['date'])
-            for label in list(set(labels)):
-                if label not in card._valid_label_colors:
-                    card._valid_label_colors.append(label)
-                card.set_label(label)
+#            card = landing_list.add_card(
+#                show['_internal']['title'],
+#                show['_internal']['description']
+#            )
+#            set_due_date(card, show['date'])
+#            for label in list(set(labels)):
+#                if label not in card._valid_label_colors:
+#                    card._valid_label_colors.append(label)
+#                card.set_label(label)
 
-            for comment in comments:
-                card.add_comment(comment)
+#            for comment in comments:
+#                card.add_comment(comment)
 
         show.pop('_internal')
         contents['events'][show['uuid']] = show
@@ -283,7 +283,7 @@ def sync_to_trello(trello, secrets, song_objects, force_add=None):
         if add_card:
             time.sleep(0.3)
 
-        save_synced_items(contents)
+#        save_synced_items(contents)
 
 
 def add(trello, secrets):
