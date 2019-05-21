@@ -9,6 +9,7 @@ import requests
 from bs4 import BeautifulSoup as bs
 from trello.plugins.sync_to_trello import sync_to_trello
 
+
 def parse_event(event, default_venue=None):
     over_21 = event.find(class_='over-21') is not None
 
@@ -29,7 +30,10 @@ def parse_event(event, default_venue=None):
     ticket_link = None
     has_ticket_link = event.find(class_='ticket-link')
     if has_ticket_link:
-        ticket_link = has_ticket_link.find('a').get('href')
+        try:
+            ticket_link = has_ticket_link.find('a').get('href')
+        except AttributeError:
+            ticket_link = has_ticket_link.get('href')
 
     headliners = event.find_all(class_='headliners')
     headliners = [x.text.split('SOLD OUT: ')[-1].split(
@@ -38,7 +42,6 @@ def parse_event(event, default_venue=None):
                   for x in headliners]
     headliners = [x.split('/') for x in headliners]
     headliners = [item.strip() for sublist in headliners for item in sublist]
-
 
     openers = [x.text for x in event.find_all(class_='supports')]
 
@@ -91,6 +94,8 @@ def main(trello, secrets):
             time_str = day.find('span').get('title')
             date = arrow.get(time_str)
             events = day.find_all('div', class_='one-event')
+            if len(events) == 0:
+                events = day.find_all('section', class_='one-event')
             for event in events:
                 parsed_event = parse_event(event, venue)
                 start_time = event.find(class_='start-time')
