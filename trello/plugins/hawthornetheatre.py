@@ -13,11 +13,12 @@ def parse_headliners(artists):
     artists = artists[0].text
 
     # separate each artist if multiple headliners
-    artists = "".join(artists.split('/', 1))
+    artists = ",".join(artists.split('/', 1))
+    artists = ",".join(artists.split('+', 1))
 
-    # Separate on commas as well
-    artists = "".join(artists.split(u'with ', 1))
-    artists = "".join(artists.split(u'With ', 1))
+    # Separate on with as well
+    artists = ",".join(artists.split(u'with ', 1))
+    artists = ",".join(artists.split(u'With ', 1))
 
     # Remove last artist's 'and'
     artists = ','.join(artists.rsplit('and ', 1))
@@ -25,9 +26,14 @@ def parse_headliners(artists):
     # Split on commas
     artists = [x.strip() for x in artists.split(',') if x.strip() != '']
 
-
     # Remove tour postfix if it exists
     artists = [x.split(u'–')[0] for x in artists]
+
+    # Remove tour postfix if it exists
+    artists = [x.split(u': ')[0] for x in artists]
+
+    # Title case please
+    artists = [x.title() for x in artists]
 
     return artists
 
@@ -42,6 +48,9 @@ def parse_openers(artists):
 
     # Split on commas
     artists = [x.strip() for x in artists.split(',') if x.strip() != '']
+
+    # Title case please
+    artists = [x.title() for x in artists]
 
     return artists
 
@@ -170,6 +179,7 @@ def main(trello, secrets, debug):
             parsed_event = parse_event(doc, venue, debug)
             final_events.append(parsed_event)
         print("Found {} items.".format(len(final_events)))
+        [print("  {}".format(",".join(event['headliners']))) for event in final_events]
         sync_to_trello(trello, secrets, final_events)
 
 def hawthorne(trello, secrets):

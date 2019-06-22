@@ -232,13 +232,17 @@ def sync_to_trello(trello, secrets, song_objects, force_add=None):
 
         comments = []
 
+        print("  Syncing: {}".format(all_artists))
         if show_play_count < 100:
+            print("    less than 100 plays")
             for artist in all_artists:
                 similar_artists = get_similar_artists(lfm, artist)
+                print("    similar artists: {}".format(",".join(similar_artists)))
                 max_count = 0
                 matches = []
                 for art in [k for k, v in similar_artists.items() if v['match'] >= .75]:
                     count = get_play_count(lfm, art)
+                    print("      count for similar artist {}: {}".format(art, count))
                     if count >= 10:
                         matches.append(u"{} ({} plays)".format(art, count))
                         max_count = max(count, max_count)

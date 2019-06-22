@@ -158,6 +158,7 @@ def main(trello, secrets):
         final_events = [parse_event(event, venue) for event in events 
                         if parse_event(event, venue) is not None]
         print("Found {} items.".format(len(final_events)))
+        [print("  {}".format(",".join(event['headliners']))) for event in final_events]
         sync_to_trello(trello, secrets, final_events)
 
 

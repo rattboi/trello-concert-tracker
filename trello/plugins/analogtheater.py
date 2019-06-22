@@ -84,6 +84,7 @@ def main(trello, secrets):
             parsed_event = parse_event(event)
             final_events.append(parsed_event)
         print("Found {} items.".format(len(final_events)))
+        [print("  {}".format(",".join(event['headliners']))) for event in final_events]
         sync_to_trello(trello, secrets, final_events)
 
 

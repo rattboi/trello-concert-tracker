@@ -119,6 +119,7 @@ def main(trello, secrets, debug):
             parsed_event = parse_event(doc, venue, debug)
             final_events.append(parsed_event)
         print("Found {} items.".format(len(final_events)))
+        [print("  {}".format(",".join(event['headliners']))) for event in final_events]
         sync_to_trello(trello, secrets, final_events)
 
 def wonderballroom(trello, secrets):

@@ -122,6 +122,7 @@ def main(trello, secrets):
             index += 1
 
         print("Found {} items.".format(len(final_events)))
+        [print("  {}".format(",".join(event['headliners']))) for event in final_events]
         sync_to_trello(trello, secrets, final_events)
 
 
